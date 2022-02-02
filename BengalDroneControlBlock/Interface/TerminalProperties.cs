@@ -36,6 +36,16 @@ namespace BengalDroneControlBlock.Interface
         public Vector3DProperty SP_Normal;
         public Vector3DProperty SP_Motion;
 
+        public SliderControl YawSensitivity;
+        public SliderControl PitchSensitivity;
+        public SliderControl RollSensitivity;
+
+        public readonly List<string> PropertyNames = new List<string>{
+            "YawSensitivity",
+            "PitchSensitivity",
+            "RollSensitivity",
+        };
+
         IMyTerminalAction RunOnce;
 
         public bool AreTerminalPropertiesSet { get; private set; }
@@ -48,6 +58,10 @@ namespace BengalDroneControlBlock.Interface
             SP_Tangent = new Vector3DProperty("SP_Tangent");
             SP_Normal = new Vector3DProperty("SP_Normal");
             SP_Motion = new Vector3DProperty("SP_Motion");
+
+            YawSensitivity = new SliderControl("YawSensitivity", "Yaw Sensitivity");
+            PitchSensitivity = new SliderControl("PitchSensitivity", "Pitch Sensitivity");
+            RollSensitivity = new SliderControl("RollSensitivity", "Roll Sensitivity");
 
             RunOnce = MyAPIGateway.TerminalControls.CreateAction<IMyRemoteControl>("RunOnce");
             RunOnce.Action = Run;
@@ -64,6 +78,10 @@ namespace BengalDroneControlBlock.Interface
             SP_Tangent.CloseBlock(myTerminalBlock);
             SP_Normal.CloseBlock(myTerminalBlock);
             SP_Motion.CloseBlock(myTerminalBlock);
+
+            YawSensitivity.CloseBlock(myTerminalBlock);
+            PitchSensitivity.CloseBlock(myTerminalBlock);
+            RollSensitivity.CloseBlock(myTerminalBlock);
         }
 
         public void OpenBlock(IMyTerminalBlock myTerminalBlock)
@@ -74,6 +92,18 @@ namespace BengalDroneControlBlock.Interface
             SP_Tangent.OpenBlock(myTerminalBlock);
             SP_Normal.OpenBlock(myTerminalBlock);
             SP_Motion.OpenBlock(myTerminalBlock);
+
+            YawSensitivity.OpenBlock(myTerminalBlock);
+            PitchSensitivity.OpenBlock(myTerminalBlock);
+            RollSensitivity.OpenBlock(myTerminalBlock);
+        }
+
+        public void GetSliders(IMyTerminalBlock myTerminalBlock, out List<IMyTerminalControl> terminalControls)
+        {
+            terminalControls = new List<IMyTerminalControl>();
+            terminalControls.Add(YawSensitivity.slider);
+            terminalControls.Add(PitchSensitivity.slider);
+            terminalControls.Add(RollSensitivity.slider);
         }
 
         public void Run(IMyTerminalBlock droneBlock)

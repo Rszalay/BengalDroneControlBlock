@@ -20,7 +20,7 @@ using VRageMath;
 using ProtoBuf;
 using BengalDroneControlBlock.Controls;
 using BengalDroneControlBlock.Settings;
-using BengalDroneControlBlock;
+using BengalDroneControlBlock.DroneBlocks;
 
 namespace BengalDroneControlBlock.Drivers
 {
@@ -32,6 +32,10 @@ namespace BengalDroneControlBlock.Drivers
         Vector3D _tangentVector;
         Vector3D _normalVector;
 
+        float OffsetYaw = 1;
+        float OffsetPitch = 1;
+        float OffsetRoll = 1;
+
         public GyroDriver(List<IMySlimBlock> slimBlocks, DroneBlock thisController, DroneSettings settings)
         {
             ThisController = thisController;
@@ -39,6 +43,13 @@ namespace BengalDroneControlBlock.Drivers
             Pitch = new Ideal(settings.Pitch, ThisController);
             Roll = new Ideal(settings.Roll, ThisController);
             Purge(slimBlocks);
+        }
+
+        public void UpdateOffsets(float yaw, float pitch, float roll)
+        {
+            OffsetYaw = yaw;
+            OffsetPitch = pitch;
+            OffsetRoll = roll;
         }
 
         public void Purge(List<IMySlimBlock> slimBlocks)
@@ -95,10 +106,11 @@ namespace BengalDroneControlBlock.Drivers
             double pitchError = Math.Asin(-transformedTangent.Y);
             double YawError = Math.Asin(transformedTangent.X);
             double rollError = Math.Asin(transformedNormal.X);
+            ThisController.Echo("KP: " + OffsetYaw);
 
-            Yaw.Load(YawError);
-            Pitch.Load(pitchError);
-            Roll.Load(rollError);
+            Yaw.Load(YawError * OffsetYaw);
+            Pitch.Load(pitchError * OffsetPitch);
+            Roll.Load(rollError * OffsetRoll);
         }
 
         public void Run()

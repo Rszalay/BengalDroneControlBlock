@@ -91,13 +91,17 @@
     <Compile Include="Controls\Ideal.cs" />
     <Compile Include="Drivers\GyroDriver.cs" />
     <Compile Include="Drivers\ThrustDriver.cs" />
-    <Compile Include="DroneBlockRun.cs" />
+    <Compile Include="DroneBlocks\DroneBlockRun.cs" />
+    <Compile Include="NetworkProtobuf\Networking.cs" />
+    <Compile Include="NetworkProtobuf\ControlUpdatePacket.cs" />
+    <Compile Include="NetworkProtobuf\PacketBase.cs" />
+    <Compile Include="Session\SessionTerminalControls.cs" />
     <Compile Include="Interface\TerminalProperties.cs" />
+    <Compile Include="Interface\SliderControl.cs" />
     <Compile Include="Interface\Vector3DProperty.cs" />
     <Compile Include="Session\Session.cs" />
-    <Compile Include="DroneBlock.cs" />
+    <Compile Include="DroneBlocks\DroneBlock.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Session\SessionControls.cs" />
     <Compile Include="Settings\DroneSettings.cs" />
   </ItemGroup>
   <ItemGroup>

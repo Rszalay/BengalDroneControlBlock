@@ -20,6 +20,7 @@ using VRageMath;
 using ProtoBuf;
 using BengalDroneControlBlock.Controls;
 using BengalDroneControlBlock.Settings;
+using BengalDroneControlBlock.DroneBlocks;
 using BengalDroneControlBlock;
 
 namespace BengalDroneControlBlock.Controls
@@ -27,7 +28,7 @@ namespace BengalDroneControlBlock.Controls
     class Ideal
     {
         DroneBlock thisDroneController;
-        double _kp, _ki, _kd;
+        public double _kp, _ki, _kd;
         double last, acc;
         double saturation;
         int ticksSinceLastRun = 0;
@@ -44,6 +45,13 @@ namespace BengalDroneControlBlock.Controls
             saturation = settings.Saturation;
             last = 0;
             acc = 0;
+        }
+
+        public void UpdateGains(IdealSettings newSettings)
+        {
+            _kp = newSettings.Kp;
+            _ki = newSettings.Ki;
+            _kd = newSettings.Kd;
         }
 
         public void Load(double error)

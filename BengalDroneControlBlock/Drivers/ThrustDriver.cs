@@ -20,6 +20,7 @@ using VRageMath;
 using ProtoBuf;
 using BengalDroneControlBlock.Controls;
 using BengalDroneControlBlock.Settings;
+using BengalDroneControlBlock.DroneBlocks;
 using BengalDroneControlBlock;
 
 namespace BengalDroneControlBlock.Drivers
@@ -65,15 +66,13 @@ namespace BengalDroneControlBlock.Drivers
 
         public void Load(Vector3D sp, double speed)
         {
-            ThisController.Echo("ticksSinceLastRun" + ticksSinceLastRun);
+            //ThisController.Echo("ticksSinceLastRun" + ticksSinceLastRun);
             currentPosition = ThisController.Entity.WorldMatrix.Translation;
             speedSp = speed;
             //_pv = (currentPosition - lastPosition) * (1 / ticksSinceLastRun);
             _pv = ThisController.Block.GetShipVelocities().LinearVelocity;
             velocityPv = _pv;
             _sp = sp;
-            ThisController.Echo("Speed sp: " + _sp.Length());
-            ThisController.Echo("Speed pv: " + _pv.Length());
             Vector3D error = _sp - velocityPv;
             ConX.Load(error.X);
             ConY.Load(error.Y);

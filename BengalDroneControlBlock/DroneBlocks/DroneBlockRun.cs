@@ -30,7 +30,7 @@ using SpaceEngineers.Game.ModAPI;
 using VRage.Game.Entity;
 using VRage.Utils;
 
-namespace BengalDroneControlBlock
+namespace BengalDroneControlBlock.DroneBlocks
 {
     partial class DroneBlock : MyGameLogicComponent
     {
@@ -50,6 +50,12 @@ namespace BengalDroneControlBlock
 
         public void Run()
         {
+            float offsetYaw = Session.Session.Instance.terminalProperties.YawSensitivity.Get(Block);
+            float offsetPitch = Session.Session.Instance.terminalProperties.PitchSensitivity.Get(Block);
+            float offsetRoll = Session.Session.Instance.terminalProperties.RollSensitivity.Get(Block);
+            //float offsetThrust = Session.Session.Instance.terminalProperties.ThrustSensitivity.Get(Block);
+            myGyroDriver.UpdateOffsets(offsetYaw, offsetPitch, offsetRoll);
+
             Vector3D tangent = Session.Session.Instance.terminalProperties.SP_Tangent.Get(Block);
             Vector3D nearNormal = Session.Session.Instance.terminalProperties.SP_Normal.Get(Block);
             Vector3D motion = Session.Session.Instance.terminalProperties.SP_Motion.Get(Block);

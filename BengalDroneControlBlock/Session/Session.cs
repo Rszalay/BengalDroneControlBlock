@@ -24,6 +24,8 @@ using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
 using VRage.Utils;
 using BengalDroneControlBlock.Interface;
+using BengalDroneControlBlock.DroneBlocks;
+using BengalDroneControlBlock.NetworkProtobuf;
 
 namespace BengalDroneControlBlock.Session
 {
@@ -33,40 +35,55 @@ namespace BengalDroneControlBlock.Session
         public static Session Instance;
         public Dictionary<long,DroneBlock> DroneBlocks = new Dictionary<long, DroneBlock>();
         public TerminalProperties terminalProperties;
+        bool inited = false;
+        public Networking Networking = new Networking(5568);
 
         public override void LoadData()
         {
             Instance = this;
+            MyEntities.OnEntityCreate += OnEntityCreate;
         }
 
         public override void BeforeStart()
         {
-            if (terminalProperties == null)
-                terminalProperties = new TerminalProperties();
-            if (!terminalProperties.AreTerminalPropertiesSet)
-                terminalProperties.SetTerminalProperties();
+            if ((MyAPIGateway.Multiplayer.IsServer && MyAPIGateway.Utilities.IsDedicated) || !MyAPIGateway.Utilities.IsDedicated)
+            {
+                if (terminalProperties == null)
+                    terminalProperties = new TerminalProperties();
+                if (!terminalProperties.AreTerminalPropertiesSet)
+                    terminalProperties.SetTerminalProperties();
+                Networking.Register();
+            }
         }
 
         protected override void UnloadData()
         {
             terminalProperties = null;
-            Instance = null; 
+            Instance = null;
+            Networking?.Unregister();
+            Networking = null;
+            MyEntities.OnEntityCreate -= OnEntityCreate;
+            MyAPIGateway.TerminalControls.CustomControlGetter -= TerminalBuilder;
         }
 
-        public override void HandleInput()
+        public void OnEntityCreate(IMyEntity ent)
         {
-            
+            if(!inited)
+                MyAPIGateway.TerminalControls.CustomControlGetter += TerminalBuilder;
         }
 
         public override void UpdateBeforeSimulation()
         {
-            foreach (var block in DroneBlocks)
-                if (block.Value != null)
-                {
-                    block.Value.Tick();
-                    block.Value.UpdatePV();
-                    block.Value.Run();
-                }
+            if ((MyAPIGateway.Multiplayer.IsServer && MyAPIGateway.Utilities.IsDedicated) || !MyAPIGateway.Utilities.IsDedicated)
+            {
+                foreach (var block in DroneBlocks)
+                    if (block.Value != null)
+                    {
+                        block.Value.Tick();
+                        block.Value.UpdatePV();
+                        block.Value.Run();
+                    }
+            }
         }
 
         public override void Simulate()

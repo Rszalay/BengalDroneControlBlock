@@ -10,6 +10,7 @@ using Sandbox.Graphics;
 using SpaceEngineers.Game;
 using SpaceEngineers.ObjectBuilders;
 using VRage;
+using VRage.Game.ObjectBuilders.Definitions;
 using VRage.Game;
 using VRage.Input;
 using VRage.Library;
@@ -23,15 +24,25 @@ using BengalDroneControlBlock.Settings;
 using BengalDroneControlBlock.Session;
 using BengalDroneControlBlock.Drivers;
 using BengalDroneControlBlock.Interface;
+using BengalDroneControlBlock.DroneBlocks;
 using Sandbox.ModAPI;
 using Sandbox.Game.Entities;
 using Sandbox.Game.EntityComponents;
 using SpaceEngineers.Game.ModAPI;
 using VRage.Game.Entity;
 using VRage.Utils;
+using Sandbox.Definitions;
+using Sandbox.Game.Entities.Cube;
+using Sandbox.Game.GameSystems.Conveyors;
+using VRage.Import;
+using Sandbox.Common.ObjectBuilders.Definitions;
+using VRageRender;
+using System.Diagnostics;
+using VRageRender.Import;
 
 
-namespace BengalDroneControlBlock
+
+namespace BengalDroneControlBlock.DroneBlocks
 {
     [MyEntityComponentDescriptor(typeof(MyObjectBuilder_RemoteControl), true, "BengalDroneControlBlock")]
     partial class DroneBlock : MyGameLogicComponent
@@ -51,11 +62,11 @@ namespace BengalDroneControlBlock
         {
             count++;
             Echo(count.ToString());
+            //Echo("Yaw Sensitivity: " + Session.Session.Instance.terminalProperties.YawSensitivity.Get(Block));
             Purge();
             Echo(myThrustDriver.ThrustData());
             Block.RefreshCustomInfo();
         }
-
 
         public override void Close() // called when block is removed for whatever reason (including ship despawn)
         {
@@ -70,7 +81,6 @@ namespace BengalDroneControlBlock
 
             if (block.CubeGrid?.Physics == null) // ignore projected and other non-physical grids
                 return;
-
             Session.Session.Instance?.DroneBlocks.Add(Block.EntityId, this);
             Session.Session.Instance.terminalProperties.OpenBlock(Block);
             block.AppendingCustomInfo += AppendCustomInfo;
