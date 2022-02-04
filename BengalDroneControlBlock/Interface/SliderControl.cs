@@ -30,7 +30,7 @@ namespace BengalDroneControlBlock.Interface
 {
     class SliderControl
     {
-        Dictionary<long, float> blockPropValues = new Dictionary<long, float>();
+        public Dictionary<long, float> blockPropValues = new Dictionary<long, float>();
         public IMyTerminalControlSlider slider;
 
         public SliderControl(string propId, string title)
@@ -50,6 +50,14 @@ namespace BengalDroneControlBlock.Interface
             if (blockPropValues.ContainsKey(myTerminalBlock.EntityId))
                 return blockPropValues[myTerminalBlock.EntityId];
             else return 0f;
+        }
+
+        public void NoEchoSet(IMyTerminalBlock myTerminalBlock, float value)
+        {
+            if (blockPropValues.ContainsKey(myTerminalBlock.EntityId))
+            {
+                blockPropValues[myTerminalBlock.EntityId] = value;
+            }
         }
 
         public void Set(IMyTerminalBlock myTerminalBlock, float value)

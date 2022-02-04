@@ -74,7 +74,8 @@ namespace BengalDroneControlBlock.Session
 
         public override void UpdateBeforeSimulation()
         {
-            if ((MyAPIGateway.Multiplayer.IsServer && MyAPIGateway.Utilities.IsDedicated) || !MyAPIGateway.Utilities.IsDedicated)
+            if ((MyAPIGateway.Multiplayer.IsServer && MyAPIGateway.Utilities.IsDedicated) || !MyAPIGateway.Multiplayer.MultiplayerActive)
+
             {
                 foreach (var block in DroneBlocks)
                     if (block.Value != null)
@@ -88,7 +89,6 @@ namespace BengalDroneControlBlock.Session
 
         public override void Simulate()
         {
-            
         }
 
         public override void UpdateAfterSimulation()
@@ -96,7 +96,6 @@ namespace BengalDroneControlBlock.Session
             try 
             {
                 
-
             }
             catch (Exception e)
             {

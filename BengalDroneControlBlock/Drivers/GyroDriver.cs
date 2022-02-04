@@ -45,7 +45,7 @@ namespace BengalDroneControlBlock.Drivers
             Purge(slimBlocks);
         }
 
-        public void UpdateOffsets(float yaw, float pitch, float roll)
+        public void UpdateOffsets(float yaw = -1, float pitch = -1, float roll = -1)
         {
             OffsetYaw = yaw;
             OffsetPitch = pitch;

@@ -34,9 +34,9 @@ namespace BengalDroneControlBlock.DroneBlocks
 {
     partial class DroneBlock : MyGameLogicComponent
     {
-        GyroDriver myGyroDriver;
-        ThrustDriver myThrustDriver;
-        DroneSettings myDroneSettings;
+        public GyroDriver myGyroDriver;
+        public ThrustDriver myThrustDriver;
+        public DroneSettings myDroneSettings;
 
         List<IMySlimBlock> _tempSlim;
         List<IMySlimBlock> _tempFat;

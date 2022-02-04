@@ -34,11 +34,11 @@ namespace BengalDroneControlBlock.NetworkProtobuf
             if (Sess.DroneBlocks.ContainsKey(Block))
             {
                 if (Name == "YawSensitivity")
-                    Sess.terminalProperties.YawSensitivity.Set(Sess.DroneBlocks[Block].Block, Value);
+                    Sess.terminalProperties.YawSensitivity.NoEchoSet(Sess.DroneBlocks[Block].Block, Value);
                 else if (Name == "PitchSensitivity")
-                    Sess.terminalProperties.PitchSensitivity.Set(Sess.DroneBlocks[Block].Block, Value);
+                    Sess.terminalProperties.PitchSensitivity.NoEchoSet(Sess.DroneBlocks[Block].Block, Value);
                 else if (Name == "RollSensitivity")
-                    Sess.terminalProperties.RollSensitivity.Set(Sess.DroneBlocks[Block].Block, Value);
+                    Sess.terminalProperties.RollSensitivity.NoEchoSet(Sess.DroneBlocks[Block].Block, Value);
             }
             //Sess.terminalProperties.ThrustSensitivity.Set(Sess.DroneBlocks[Block].Block, Value[3]);
             return true; // relay packet to other clients (only works if server receives it)
