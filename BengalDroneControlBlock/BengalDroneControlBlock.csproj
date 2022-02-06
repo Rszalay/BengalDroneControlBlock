@@ -89,12 +89,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controls\Ideal.cs" />
+    <Compile Include="Drivers\GyroDriver2.cs" />
     <Compile Include="Drivers\GyroDriver.cs" />
     <Compile Include="Drivers\ThrustDriver.cs" />
     <Compile Include="DroneBlocks\DroneBlockRun.cs" />
     <Compile Include="NetworkProtobuf\Networking.cs" />
     <Compile Include="NetworkProtobuf\ControlUpdatePacket.cs" />
     <Compile Include="NetworkProtobuf\PacketBase.cs" />
+    <Compile Include="Session\SessionRunQueue.cs" />
     <Compile Include="Session\SessionTerminalControls.cs" />
     <Compile Include="Interface\TerminalProperties.cs" />
     <Compile Include="Interface\SliderControl.cs" />

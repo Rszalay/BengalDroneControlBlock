@@ -41,7 +41,7 @@ namespace BengalDroneControlBlock.Interface
             slider.Title = MyStringId.GetOrCompute(title);
             slider.Visible = Istrue;
             slider.Enabled = Isenabled;
-            slider.SetLimits(0, 2);
+            slider.SetLogLimits(.1f, 10f);
             MyAPIGateway.TerminalControls.AddControl<IMyRemoteControl>(slider);
         }
 

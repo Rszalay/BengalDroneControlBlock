@@ -36,7 +36,9 @@ namespace BengalDroneControlBlock.Drivers
         double yThrottle;
         double zThrottle;
         double speedSp;
-        int ticksSinceLastRun = 0;
+        public int ticksSinceLastRun = 0;
+
+        float gridForwardThrust = 0;
 
         public ThrustDriver(List<IMySlimBlock> blocks, DroneBlock thisController, DroneSettings settings)
         {
@@ -50,10 +52,19 @@ namespace BengalDroneControlBlock.Drivers
 
         public void Purge(List<IMySlimBlock> blocks)
         {
+            foreach (var orientation in thrusterSet)
+                orientation.Value?.Clear();
+            thrusterSet?.Clear();
+            gridForwardThrust = 0;
+            thrusterSet = new Dictionary<Base6Directions.Direction, List<IMyThrust>>();
             foreach (IMySlimBlock block in blocks)
             {
                 if (block.FatBlock is IMyThrust)
                 {
+                    if(block.FatBlock.WorldMatrix.Forward == ThisController.Block.WorldMatrix.Backward)
+                    {
+                        gridForwardThrust += (block.FatBlock as IMyThrust).MaxThrust;
+                    }
                     if (!thrusterSet.ContainsKey(block.Orientation.Forward))
                     {
                         thrusterSet.Add(block.Orientation.Forward, new List<IMyThrust>());
@@ -62,12 +73,18 @@ namespace BengalDroneControlBlock.Drivers
                     else { thrusterSet[block.Orientation.Forward].Add(block.FatBlock as IMyThrust); }
                 }
             }
+            float mass = (ThisController.Block.CubeGrid as MyCubeGrid).GetCurrentMass();
+            float thrust2Mass = gridForwardThrust / mass;
+            IdealSettings newSettings = new IdealSettings(thrust2Mass * .01f, (float)Math.Sqrt(thrust2Mass) * .005f, (float)Math.Pow(thrust2Mass, 2) * 0f, 1);
+            ConX.UpdateGains(newSettings);
+            ConY.UpdateGains(newSettings);
+            ConZ.UpdateGains(newSettings);
         }
 
         public void Load(Vector3D sp, double speed)
         {
             //ThisController.Echo("ticksSinceLastRun" + ticksSinceLastRun);
-            currentPosition = ThisController.Entity.WorldMatrix.Translation;
+            currentPosition = ThisController.Block.CubeGrid.Physics.CenterOfMassWorld;
             speedSp = speed;
             //_pv = (currentPosition - lastPosition) * (1 / ticksSinceLastRun);
             _pv = ThisController.Block.GetShipVelocities().LinearVelocity;
@@ -105,6 +122,15 @@ namespace BengalDroneControlBlock.Drivers
                     }
                 }
             }
+            //MyAPIGateway.Utilities.SendMessage(thrusterSet.Count.ToString());
+            ticksSinceLastRun = 0;
+        }
+
+        public void UpdateGains(DroneSettings droneSettings)
+        {
+            ConX.UpdateGains(droneSettings.Thrust);
+            ConY.UpdateGains(droneSettings.Thrust);
+            ConZ.UpdateGains(droneSettings.Thrust);
         }
 
         public void Tick()

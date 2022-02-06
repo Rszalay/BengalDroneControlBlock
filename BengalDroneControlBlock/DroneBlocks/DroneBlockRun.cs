@@ -41,6 +41,8 @@ namespace BengalDroneControlBlock.DroneBlocks
         List<IMySlimBlock> _tempSlim;
         List<IMySlimBlock> _tempFat;
 
+        bool firstRun = true;
+
         public void Tick()
         {
             //Echo("Controller Ticked");
@@ -55,6 +57,8 @@ namespace BengalDroneControlBlock.DroneBlocks
             float offsetRoll = Session.Session.Instance.terminalProperties.RollSensitivity.Get(Block);
             //float offsetThrust = Session.Session.Instance.terminalProperties.ThrustSensitivity.Get(Block);
             myGyroDriver.UpdateOffsets(offsetYaw, offsetPitch, offsetRoll);
+            Echo(myThrustDriver.ticksSinceLastRun.ToString());
+            //Purge();
 
             Vector3D tangent = Session.Session.Instance.terminalProperties.SP_Tangent.Get(Block);
             Vector3D nearNormal = Session.Session.Instance.terminalProperties.SP_Normal.Get(Block);
@@ -76,10 +80,10 @@ namespace BengalDroneControlBlock.DroneBlocks
         {
             //drone setting set to default here, change to autotune later
             myDroneSettings = new DroneSettings();
-            myDroneSettings.SetPitch(2, 5, 10, 30);
-            myDroneSettings.SetYaw(2, 5, 10, 30);
-            myDroneSettings.SetRoll(2, 5, 10, 30);
-            myDroneSettings.SetThrust(1, .5f, 50, 1);
+            myDroneSettings.SetPitch(2, .01f, 0, 30);
+            myDroneSettings.SetYaw(2, .01f, 0, 30);
+            myDroneSettings.SetRoll(2, .01f, 0, 30);
+            myDroneSettings.SetThrust(1, .01f, 0, 1);
 
             _tempFat = new List<IMySlimBlock>();
             _tempSlim = new List<IMySlimBlock>();
@@ -89,22 +93,35 @@ namespace BengalDroneControlBlock.DroneBlocks
                     _tempFat.Add(slimBlock as IMySlimBlock);
             myGyroDriver = new GyroDriver(_tempFat, this, myDroneSettings);
             myThrustDriver = new ThrustDriver(_tempFat, this, myDroneSettings);
+            Purge();
             _tempFat.Clear();
             _tempSlim.Clear();
         }
 
         public void Purge()
         {
+            _tempFat?.Clear();
+            _tempSlim?.Clear();
             _tempFat = new List<IMySlimBlock>();
             _tempSlim = new List<IMySlimBlock>();
+
+            myDroneSettings = new DroneSettings();
+            myDroneSettings.SetPitch(2, .01f, 0, 30);
+            myDroneSettings.SetYaw(2, .01f, 0, 30);
+            myDroneSettings.SetRoll(2, .01f, 0, 30);
+            myDroneSettings.SetThrust(1, .01f, 0, 1);
+
             Block.CubeGrid.GetBlocks(_tempSlim);
             foreach (var slimBlock in _tempSlim)
                 if (slimBlock.FatBlock != null)
                     _tempFat.Add(slimBlock as IMySlimBlock);
-            myGyroDriver = new GyroDriver(_tempFat, this, myDroneSettings);
-            myThrustDriver = new ThrustDriver(_tempFat, this, myDroneSettings);
-            _tempFat.Clear();
-            _tempSlim.Clear();
+            myGyroDriver.Purge(_tempFat);
+            myThrustDriver.Purge(_tempFat);
+        }
+
+        public void RegisterForPurge(IMySlimBlock damagedBlock)
+        {
+            Session.Session.Instance.RegisterForPurge(Block.EntityId);
         }
     }
 }

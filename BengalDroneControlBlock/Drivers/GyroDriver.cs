@@ -32,6 +32,8 @@ namespace BengalDroneControlBlock.Drivers
         Vector3D _tangentVector;
         Vector3D _normalVector;
 
+        float totalGridTorque = 0;
+
         float OffsetYaw = 1;
         float OffsetPitch = 1;
         float OffsetRoll = 1;
@@ -47,21 +49,24 @@ namespace BengalDroneControlBlock.Drivers
 
         public void UpdateOffsets(float yaw = -1, float pitch = -1, float roll = -1)
         {
-            OffsetYaw = yaw;
-            OffsetPitch = pitch;
-            OffsetRoll = roll;
+            Yaw.UpdateOffset(yaw);
+            Pitch.UpdateOffset(pitch);
+            Roll.UpdateOffset(roll);
         }
 
         public void Purge(List<IMySlimBlock> slimBlocks)
         {
             gyroSets?.Clear();
             gyroSets = new Dictionary<MyBlockOrientation, List<IMyGyro>>();
+            totalGridTorque = 0;
             foreach (var block in slimBlocks)
             {
                 if (block.FatBlock is IMyGyro)
                 {
                     if (block == null)
                         continue;
+                    IMyGyro thisGyro = block.FatBlock as IMyGyro;
+                    totalGridTorque += (thisGyro as MyGyro).MaxGyroForce;
                     if (!gyroSets.ContainsKey(block.Orientation))
                     {
                         gyroSets.Add(block.Orientation, new List<IMyGyro>());
@@ -71,6 +76,22 @@ namespace BengalDroneControlBlock.Drivers
                         gyroSets[block.Orientation].Add(block.FatBlock as IMyGyro);
                 }
             }
+            float mass = (ThisController.Block.CubeGrid as MyCubeGrid).GetCurrentMass();
+            float Loa = (ThisController.Block.CubeGrid.LocalAABB.Size * ThisController.Block.LocalMatrix.Forward).Length();
+            float Woa = (ThisController.Block.CubeGrid.LocalAABB.Size * ThisController.Block.LocalMatrix.Left).Length();
+            float Hoa = (ThisController.Block.CubeGrid.LocalAABB.Size * ThisController.Block.LocalMatrix.Up).Length();
+            float MoIYaw = (mass / 12f) * (Loa * Loa + Woa * Woa);
+            float MoIPitch = (mass / 12f) * (Loa * Loa + Hoa * Hoa);
+            float MoIRoll = (mass / 12f) * (Woa * Woa + Hoa * Hoa);
+            float LimitYaw = MoIYaw / totalGridTorque;
+            float LimitPitch = MoIPitch / totalGridTorque;
+            float LimitRoll = MoIRoll / totalGridTorque;
+            IdealSettings newYaw = new IdealSettings(LimitYaw * 10f, (float)Math.Sqrt(LimitYaw) * .005f, (float)Math.Pow(LimitYaw, 2) * 50, 30);
+            IdealSettings newPitch = new IdealSettings(LimitPitch * 10f, (float)Math.Sqrt(LimitPitch) * .005f, (float)Math.Pow(LimitPitch, 2) * 50, 30);
+            IdealSettings newRoll = new IdealSettings(LimitRoll * 10f, (float)Math.Sqrt(LimitRoll) * .005f, (float)Math.Pow(LimitRoll, 2) * 50, 30);
+            Yaw.UpdateGains(newYaw);
+            Pitch.UpdateGains(newPitch);
+            Roll.UpdateGains(newRoll);
         }
 
         public void ApplyGyroOverride(Vector3D gyroRpms)
@@ -108,9 +129,9 @@ namespace BengalDroneControlBlock.Drivers
             double rollError = Math.Asin(transformedNormal.X);
             ThisController.Echo("KP: " + OffsetYaw);
 
-            Yaw.Load(YawError * OffsetYaw);
-            Pitch.Load(pitchError * OffsetPitch);
-            Roll.Load(rollError * OffsetRoll);
+            Yaw.Load(YawError);
+            Pitch.Load(pitchError);
+            Roll.Load(rollError);
         }
 
         public void Run()
@@ -120,6 +141,13 @@ namespace BengalDroneControlBlock.Drivers
             gyroRpms.Y = Yaw.Run();
             gyroRpms.Z = Roll.Run();
             ApplyGyroOverride(gyroRpms);
+        }
+
+        public void UpdateGains(DroneSettings droneSettings)
+        {
+            Yaw.UpdateGains(droneSettings.Yaw);
+            Pitch.UpdateGains(droneSettings.Pitch);
+            Roll.UpdateGains(droneSettings.Roll);
         }
 
         public void Tick()

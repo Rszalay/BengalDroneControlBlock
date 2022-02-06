@@ -74,17 +74,7 @@ namespace BengalDroneControlBlock.Session
 
         public override void UpdateBeforeSimulation()
         {
-            if ((MyAPIGateway.Multiplayer.IsServer && MyAPIGateway.Utilities.IsDedicated) || !MyAPIGateway.Multiplayer.MultiplayerActive)
-
-            {
-                foreach (var block in DroneBlocks)
-                    if (block.Value != null)
-                    {
-                        block.Value.Tick();
-                        block.Value.UpdatePV();
-                        block.Value.Run();
-                    }
-            }
+            Run();
         }
 
         public override void Simulate()
