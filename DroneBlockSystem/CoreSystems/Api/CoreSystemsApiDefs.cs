@@ -2,7 +2,7 @@
 using ProtoBuf;
 using VRageMath;
 
-namespace DroneBlockSystem.TargetingBlock.CoreSystems.Api
+namespace DroneBlockSystem.CoreSystems.Api
 {
     public static class WcApiDef
     {

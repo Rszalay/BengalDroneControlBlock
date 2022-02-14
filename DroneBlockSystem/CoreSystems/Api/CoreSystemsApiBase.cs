@@ -8,7 +8,7 @@ using VRage.Game.Entity;
 using VRage.ModAPI;
 using VRageMath;
 
-namespace DroneBlockSystem.TargetingBlock.CoreSystems.Api
+namespace DroneBlockSystem.CoreSystems.Api
 {
     /// <summary>
     /// https://github.com/sstixrud/CoreSystems/blob/master/BaseData/Scripts/CoreSystems/Api/CoreSystemsApiBase.cs

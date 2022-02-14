@@ -88,10 +88,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ControlBlock\DroneBlocks\DroneBlockComponents.cs" />
     <Compile Include="Controls\Ideal.cs" />
     <Compile Include="ControlBlock\Drivers\GyroDriver.cs" />
     <Compile Include="ControlBlock\Drivers\ThrustDriver.cs" />
     <Compile Include="ControlBlock\DroneBlocks\DroneBlockRun.cs" />
+    <Compile Include="NetworkProtobuf\EchoUpdatePacket.cs" />
     <Compile Include="NetworkProtobuf\Networking.cs" />
     <Compile Include="NetworkProtobuf\ControlUpdatePacket.cs" />
     <Compile Include="NetworkProtobuf\PacketBase.cs" />
@@ -104,17 +106,16 @@
     <Compile Include="ControlBlock\DroneBlocks\DroneBlock.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ControlBlock\Settings\DroneSettings.cs" />
-    <Compile Include="TargetingBlock\CoreSystems\Api\CoreSystemsApiDefs.cs" />
-    <Compile Include="TargetingBlock\CoreSystems\Api\CoreSystemsApiPhantoms.cs" />
-    <Compile Include="TargetingBlock\CoreSystems\Api\CoreSystemsApiBlocks.cs" />
+    <Compile Include="CoreSystems\Api\CoreSystemsApiDefs.cs" />
+    <Compile Include="CoreSystems\Api\CoreSystemsApiPhantoms.cs" />
+    <Compile Include="CoreSystems\Api\CoreSystemsApiBlocks.cs" />
     <Compile Include="PolyMath\MotionCurve.cs" />
     <Compile Include="TargetingBlock\TargetingBlocks\TargetingComputer.cs" />
-    <Compile Include="TargetingBlock\CoreSystems\Api\CoreSystemsApiBase.cs" />
-    <Compile Include="TargetingBlock\TargetingBlocks\ObjectiveTracker.cs" />
-    <Compile Include="TargetingBlock\TargetingBlocks\Tracker.cs" />
+    <Compile Include="CoreSystems\Api\CoreSystemsApiBase.cs" />
+    <Compile Include="Targeting\ObjectiveTracker.cs" />
+    <Compile Include="Targeting\Tracker.cs" />
+    <Compile Include="Utility\IMyDBSBlock.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="API\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

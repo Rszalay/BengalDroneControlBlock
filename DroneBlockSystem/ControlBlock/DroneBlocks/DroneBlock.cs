@@ -10,19 +10,29 @@ using Sandbox.ModAPI;
 using VRage.Game.ModAPI.Ingame.Utilities;
 using DroneBlockSystem.ControlBlock.Settings;
 using DroneBlockSystem.TargetingBlock.TargetingBlocks;
+using Sandbox.ModAPI.Interfaces.Terminal;
+using System.Linq;
+using System.Threading.Tasks;
+using VRage.Game.ModAPI.Network;
+using VRage.Network;
+using VRage.Utils;
+using DroneBlockSystem.NetworkProtobuf;
+using DroneBlockSystem.Utility;
+using Sandbox.Game.EntityComponents;
 
 
 
 namespace DroneBlockSystem.ControlBlock.DroneBlocks
 {
     [MyEntityComponentDescriptor(typeof(MyObjectBuilder_RemoteControl), true, "BengalDroneControlBlock")]
-    partial class DroneBlock : MyGameLogicComponent
+    partial class DroneBlock : MyGameLogicComponent, IMyDBSBlock
     {
         internal IMyRemoteControl Block;
-        List<string> EchoStrings = new List<string>();
+        public List<string> EchoStrings = new List<string>();
         int count = 0;
         bool inited = false;
         MyIni _ini = new MyIni();
+        bool IsServerOrHost = false;
 
         public override void Init(MyObjectBuilder_EntityBase objectBuilder)
         {
@@ -30,65 +40,59 @@ namespace DroneBlockSystem.ControlBlock.DroneBlocks
             NeedsUpdate = MyEntityUpdateEnum.EACH_FRAME;
         }
 
+        public MyBlockType GetBlockType() { return MyBlockType.Controller; }
+        public long GetGridId() { return Block.CubeGrid.EntityId; }
+
         public override void UpdateBeforeSimulation()
         {
             if (!inited)
                 return;
-            count++;
-            Echo(count.ToString());
-            Echo(myThrustDriver.ThrustData());
             Block.RefreshCustomInfo();
+            if (IsServerOrHost)
+            {
+                count++;
+                Echo(count.ToString());
+                Echo(myThrustDriver.ThrustData());
+            }
         }
 
         public override void Close() // called when block is removed for whatever reason (including ship despawn)
         {
-            IMyCubeGrid grid = Block.CubeGrid;
             Session.Session.Instance.terminalProperties.CloseBlock(Block);
-            Session.Session.Instance?.DroneBlocks.Remove(Block.EntityId);
-            Block.AppendingCustomInfo -= AppendCustomInfo;
-            grid.OnBlockRemoved -= RegisterForPurge;
-            Block.CustomDataChanged -= CustomDataChanged;
+            Session.Session.Instance?.AllDroneBlocks.Remove(Block.EntityId);
+            Session.Session.Instance?.AllBlocks.Remove(this);
+            if (IsServerOrHost)
+            {
+                IMyCubeGrid grid = Block.CubeGrid;
+                Block.AppendingCustomInfo -= AppendCustomInfo;
+                grid.OnBlockRemoved -= RegisterForPurge;
+            }
         }
 
         public override void UpdateOnceBeforeFrame() // first update of the block
         {
-            var block = (IMyRemoteControl)Entity;
-
-            if (block.CubeGrid?.Physics == null) // ignore projected and other non-physical grids
-                return;
-            IMyCubeGrid grid = Block.CubeGrid;
-            Session.Session.Instance?.DroneBlocks.Add(Block.EntityId, this);
+            Block = (IMyRemoteControl)Entity;
             Session.Session.Instance.terminalProperties.OpenBlock(Block);
-            block.AppendingCustomInfo += AppendCustomInfo;
-            grid.OnBlockRemoved += RegisterForPurge;
-            grid.OnBlockAdded += RegisterForPurge;
-            block.CustomDataChanged += CustomDataChanged;
-            InitializeDrone();
-            inited = true;
+            Session.Session.Instance?.AllDroneBlocks.Add(Block.EntityId, this);
+            Session.Session.Instance?.AllBlocks.Add(this);
+            if ((MyAPIGateway.Multiplayer.IsServer && MyAPIGateway.Multiplayer.MultiplayerActive) || !MyAPIGateway.Multiplayer.MultiplayerActive)
+                IsServerOrHost = true;
+            if (Block.CubeGrid?.Physics == null) // ignore projected and other non-physical grids
+                return;
+            if (IsServerOrHost)
+            {
+                IMyCubeGrid grid = Block.CubeGrid;
+                Block.AppendingCustomInfo += AppendCustomInfo;
+                grid.OnBlockRemoved += RegisterForPurge;
+                grid.OnBlockAdded += RegisterForPurge;
+                InitializeDrone();
+                inited = true;
+            }
         }
 
         private void AppendCustomInfo(IMyTerminalBlock block, StringBuilder text)
         {
-            if (block == null) return;
-            text.Clear();
-            text.AppendLine("* * * * * * * * * * * * *");
-            foreach (var line in EchoStrings) text.AppendLine(line);
-            EchoStrings.Clear();
-            EchoStrings = new List<string>();
-        }
-
-        internal void CustomDataChanged(IMyTerminalBlock thisBlock)
-        {
-            MyIniParseResult result;
-            if (!_ini.TryParse(thisBlock.CustomData, out result))
-                throw new Exception(result.ToString());
-            DroneSettings droneSettings = new DroneSettings();
-            droneSettings.SetThrust(_ini.Get("Thrust", "kp").ToSingle(), _ini.Get("Thrust", "ki").ToSingle(), _ini.Get("Thrust", "kd").ToSingle(), 1);
-            droneSettings.SetYaw(_ini.Get("Yaw", "kp").ToSingle(), _ini.Get("Yaw", "ki").ToSingle(), _ini.Get("Yaw", "kd").ToSingle(), 1);
-            droneSettings.SetPitch(_ini.Get("Pitch", "kp").ToSingle(), _ini.Get("Pitch", "ki").ToSingle(), _ini.Get("Pitch", "kd").ToSingle(), 1);
-            droneSettings.SetRoll(_ini.Get("Roll", "kp").ToSingle(), _ini.Get("Roll", "ki").ToSingle(), _ini.Get("Roll", "kd").ToSingle(), 1);
-            _ini.Clear();
-            _ini = new MyIni();
+            
         }
 
         public void Echo(string echoString)

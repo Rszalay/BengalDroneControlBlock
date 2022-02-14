@@ -4,6 +4,23 @@ using VRage.Game.Components;
 using VRage.Game.ModAPI;
 using DroneBlockSystem.ControlBlock.Drivers;
 using DroneBlockSystem.ControlBlock.Settings;
+using System;
+using System.Text;
+using Sandbox.Common.ObjectBuilders;
+using VRage.ModAPI;
+using VRage.ObjectBuilders;
+using Sandbox.ModAPI;
+using VRage.Game.ModAPI.Ingame.Utilities;
+using DroneBlockSystem.TargetingBlock.TargetingBlocks;
+using Sandbox.ModAPI.Interfaces.Terminal;
+using System.Linq;
+using System.Threading.Tasks;
+using VRage.Game.ModAPI.Network;
+using VRage.Network;
+using VRage.Utils;
+using DroneBlockSystem.NetworkProtobuf;
+using DroneBlockSystem.Utility;
+using Sandbox.Game.EntityComponents;
 
 namespace DroneBlockSystem.ControlBlock.DroneBlocks
 {
@@ -24,6 +41,18 @@ namespace DroneBlockSystem.ControlBlock.DroneBlocks
 
         public void Run()
         {
+            UpdateOffsets();
+            //Purge();
+            GetPropertyInputs();
+            GetAttachedComps(Block.CubeGrid.EntityId);
+            TargetingBlock?.GetLocalTrackers();
+
+            myGyroDriver.Run();
+            myThrustDriver.Run();
+        }
+
+        internal void UpdateOffsets()
+        {
             float offsetYaw = Session.Session.Instance.terminalProperties.YawSensitivity.Get(Block);
             float offsetPitch = Session.Session.Instance.terminalProperties.PitchSensitivity.Get(Block);
             float offsetRoll = Session.Session.Instance.terminalProperties.RollSensitivity.Get(Block);
@@ -31,15 +60,15 @@ namespace DroneBlockSystem.ControlBlock.DroneBlocks
             myGyroDriver.UpdateOffsets(offsetYaw, offsetPitch, offsetRoll);
             myThrustDriver.UpdateOffsets(offsetThrust);
             Echo(myThrustDriver.ticksSinceLastRun.ToString());
-            //Purge();
+        }
 
+        internal void GetPropertyInputs()
+        {
             Vector3D tangent = Session.Session.Instance.terminalProperties.SP_Tangent.Get(Block);
             Vector3D nearNormal = Session.Session.Instance.terminalProperties.SP_Normal.Get(Block);
             Vector3D motion = Session.Session.Instance.terminalProperties.SP_Motion.Get(Block);
             myGyroDriver.Load(tangent, nearNormal);
-            myGyroDriver.Run();
             myThrustDriver.Load(motion);
-            myThrustDriver.Run();
         }
 
         internal void UpdatePV()

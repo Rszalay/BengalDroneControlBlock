@@ -10,7 +10,9 @@ using DroneBlockSystem.ControlBlock.DroneBlocks;
 using DroneBlockSystem.Interface;
 using DroneBlockSystem.NetworkProtobuf;
 using DroneBlockSystem.TargetingBlock.TargetingBlocks;
-using DroneBlockSystem.TargetingBlock.CoreSystems.Api;
+using DroneBlockSystem.Targeting;
+using DroneBlockSystem.CoreSystems.Api;
+using DroneBlockSystem.Utility;
 
 namespace DroneBlockSystem.Session
 {
@@ -18,14 +20,16 @@ namespace DroneBlockSystem.Session
     partial class Session : MySessionComponentBase
     {
         public static Session Instance;
-        public Dictionary<long,DroneBlock> DroneBlocks = new Dictionary<long, DroneBlock>();
+        public Dictionary<long,DroneBlock> AllDroneBlocks = new Dictionary<long, DroneBlock>();
         public Dictionary<long,TargetingComputer> TargetingBlocks = new Dictionary<long, TargetingComputer>();
+        public List<IMyDBSBlock> AllBlocks = new List<IMyDBSBlock>();
         public TerminalProperties terminalProperties;
-        readonly bool inited = false;
+        public bool inited { get; private set; } = false;
         public Networking Networking = new Networking(5568);
         public WcApi WeaponCore;
         public Tracker TargetTracker = new Tracker();
         public bool WcInited { get; private set; } = false;
+        bool IsServerOrHost = false;
 
         public override void LoadData()
         {
@@ -35,13 +39,17 @@ namespace DroneBlockSystem.Session
 
         public override void BeforeStart()
         {
-            if ((MyAPIGateway.Multiplayer.IsServer && MyAPIGateway.Utilities.IsDedicated) || !MyAPIGateway.Utilities.IsDedicated)
+            if ((MyAPIGateway.Multiplayer.IsServer && MyAPIGateway.Multiplayer.MultiplayerActive) || !MyAPIGateway.Multiplayer.MultiplayerActive)
             {
-                if (terminalProperties == null)
-                    terminalProperties = new TerminalProperties();
-                if (!terminalProperties.AreTerminalPropertiesSet)
-                    terminalProperties.SetTerminalProperties();
-                Networking.Register();
+                IsServerOrHost = true;
+            }
+            if (terminalProperties == null)
+                terminalProperties = new TerminalProperties();
+            if (!terminalProperties.AreTerminalPropertiesSet)
+                terminalProperties.SetTerminalProperties();
+            Networking.Register();
+            if(IsServerOrHost)
+            { 
                 if(inited)
                 {
                     WeaponCore = new WcApi();
@@ -66,15 +74,17 @@ namespace DroneBlockSystem.Session
         {
             if(!inited)
                 MyAPIGateway.TerminalControls.CustomControlGetter += TerminalBuilder;
+            inited = true;
         }
 
         public override void UpdateBeforeSimulation()
         {
             Run();
-            if (WcInited)
-            {
-                TargetTracker.Run();
-            }
+            if (IsServerOrHost)
+                if (WcInited)
+                {
+                    TargetTracker.Run();
+                }
         }
 
         public override void Simulate()

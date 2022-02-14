@@ -9,7 +9,7 @@ using VRage.ObjectBuilders;
 using Sandbox.ModAPI;
 using VRage.Game.ModAPI.Ingame.Utilities;
 using DroneBlockSystem.ControlBlock.Settings;
-using DroneBlockSystem.TargetingBlock.CoreSystems.Api;
+using DroneBlockSystem.CoreSystems.Api;
 using Sandbox.Common;
 using Sandbox.Game;
 using SpaceEngineers.Game;
@@ -25,30 +25,29 @@ using ProtoBuf;
 using VRage;
 using VRage.Game.Entity;
 using VRageMath;
+using Sandbox.ModAPI.Ingame;
 
-namespace DroneBlockSystem.TargetingBlock.TargetingBlocks
+namespace DroneBlockSystem.Targeting
 {
     class Tracker
     {
-        private IMyEntities myEntities;
-        public Dictionary<long, long> GridsWithControlBlocks = new Dictionary<long, long>();//blockID, gridID
-        public Dictionary<long, List<long>> ThreatIdsByBlock = new Dictionary<long, List<long>>();//blockId, threat entityIds<>
-        Dictionary<long, ObjectiveTracker> Objectives = new Dictionary<long, ObjectiveTracker>();
+        public Dictionary<long, List<long>> ThreatIdsByBlock = new Dictionary<long, List<long>>();//GridId, threat entityIds<>
+        Dictionary<long, IMyEntity> Objectives = new Dictionary<long, IMyEntity>();
         ICollection<MyTuple<IMyEntity, float>> tempThreats;
 
         public void Run()
-        {
-            foreach(var grid in GridsWithControlBlocks)
+        {/*
+            foreach(var block in Session.Session.Instance.TargetingBlocks)
             {
-                IMyEntity thisGrid = myEntities.GetEntityById(grid.Value);
+                IMyEntity thisGrid = block.Value.Block.CubeGrid;
                 tempThreats?.Clear();
                 tempThreats = new List<MyTuple<IMyEntity, float>>();
                 Session.Session.Instance.WeaponCore.GetSortedThreats(thisGrid, tempThreats);
-                ThreatIdsByBlock[grid.Value]?.Clear();
-                ThreatIdsByBlock[grid.Value] = new List<long>();
+                ThreatIdsByBlock[thisGrid.EntityId]?.Clear();
+                ThreatIdsByBlock[thisGrid.EntityId] = new List<long>();
                 foreach (var threat in tempThreats)
                 {
-                    ThreatIdsByBlock[grid.Value].Add(threat.Item1.EntityId);
+                    ThreatIdsByBlock[thisGrid.EntityId].Add(threat.Item1.EntityId);
                     if(!Objectives.ContainsKey(threat.Item1.EntityId))
                     {
                         Objectives.Add(threat.Item1.EntityId, new ObjectiveTracker(threat.Item1));
@@ -58,27 +57,19 @@ namespace DroneBlockSystem.TargetingBlock.TargetingBlocks
                 }
                 foreach(var objective in Objectives)
                 {
-                    objective.Value.Update(myEntities.GetEntityById(objective.Key).GetPosition(), 1);
+                    objective.Value.Update(MyAPIGateway.Entities.GetEntityById(objective.Key).GetPosition(), 1);
                 }
-            }
+            }*/
         }
 
-        public void GetThreatTrackers(long targetingGrid, ref List<ObjectiveTracker> objectiveTrackers)
+        public void GetThreatTrackers(long targetingGrid, out List<IMyEntity> objectiveTrackers)
         {
-            foreach(var objective in ThreatIdsByBlock[targetingGrid])
-            {
-                objectiveTrackers.Add(Objectives[objective]);
-            }
-        }
-
-        public void AddGridWithControlBlock(IMyTerminalBlock controlBlock)
-        {
-            GridsWithControlBlocks.Add(controlBlock.EntityId, controlBlock.CubeGrid.EntityId);
-        }
-
-        public void RemoveGridWithControlBlock(IMyTerminalBlock controlBlock)
-        {
-            GridsWithControlBlocks.Remove(controlBlock.EntityId);
+            objectiveTrackers = new List<IMyEntity>();
+            tempThreats?.Clear();
+            tempThreats = new List<MyTuple<IMyEntity, float>>();
+            Session.Session.Instance.WeaponCore.GetSortedThreats(MyAPIGateway.Entities.GetEntityById(targetingGrid), tempThreats);
+            foreach (var threat in tempThreats)
+                objectiveTrackers.Add(threat.Item1);
         }
     }
 }

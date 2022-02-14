@@ -109,7 +109,6 @@ namespace DroneBlockSystem.ControlBlock.Drivers
                     }
                 }
             }
-            //MyAPIGateway.Utilities.SendMessage(thrusterSet.Count.ToString());
             ticksSinceLastRun = 0;
         }
 

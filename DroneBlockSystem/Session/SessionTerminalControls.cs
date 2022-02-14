@@ -11,7 +11,7 @@ namespace DroneBlockSystem.Session
     {
         public void TerminalBuilder(IMyTerminalBlock block, List<IMyTerminalControl> controls)
         {
-            if (!Instance.DroneBlocks.ContainsKey(block.EntityId))
+            if (!Instance.AllDroneBlocks.ContainsKey(block.EntityId))
             {
                 for (int i = controls.Count - 1; i >= 0; i--)
                     if (terminalProperties.PropertyNames.Contains(controls[i].Id))

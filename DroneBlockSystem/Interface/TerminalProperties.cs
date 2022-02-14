@@ -82,7 +82,7 @@ namespace DroneBlockSystem.Interface
 
         internal void Run(IMyTerminalBlock droneBlock)
         {
-            Session.Session.Instance.DroneBlocks[droneBlock.EntityId].Run();
+            Session.Session.Instance.AllDroneBlocks[droneBlock.EntityId].Run();
         }
     }
 }

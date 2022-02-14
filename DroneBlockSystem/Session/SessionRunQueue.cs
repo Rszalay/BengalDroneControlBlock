@@ -16,8 +16,8 @@ namespace DroneBlockSystem.Session
             if(PurgeQueue.Count > 0)
             {
                 long thisDrone = PurgeQueue.Dequeue();
-                if(DroneBlocks.ContainsKey(thisDrone))
-                    DroneBlocks[thisDrone].Purge();
+                if(AllDroneBlocks.ContainsKey(thisDrone))
+                    AllDroneBlocks[thisDrone].Purge();
             }
         }
 
@@ -29,24 +29,24 @@ namespace DroneBlockSystem.Session
 
         public void Run()
         {
-            if ((MyAPIGateway.Multiplayer.IsServer && MyAPIGateway.Utilities.IsDedicated) || !MyAPIGateway.Multiplayer.MultiplayerActive)
+            if (IsServerOrHost)
             {
-                if (DroneBlocks == null)
+                if (AllDroneBlocks == null)
                     return;
-                if (DroneBlocks.Count > 0)
+                if (AllDroneBlocks.Count > 0)
                 {
                     Purge();
                     if (RunQueue.Count < dronesToRun * 2)
-                        foreach (var drone in DroneBlocks)
+                        foreach (var drone in AllDroneBlocks)
                             RunQueue.Enqueue(drone.Key);
                     for (int i = 0; i < dronesToRun; i++)
                     {
-                        DroneBlocks[RunQueue.Dequeue()].Run();
-                        if (i >= DroneBlocks.Count - 1)
+                        AllDroneBlocks[RunQueue.Dequeue()].Run();
+                        if (i >= AllDroneBlocks.Count - 1)
                             break;
                     }
                 }
-                foreach (var drone in DroneBlocks)
+                foreach (var drone in AllDroneBlocks)
                     drone.Value.Tick();
             }
         }

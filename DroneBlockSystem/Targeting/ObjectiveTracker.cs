@@ -9,7 +9,7 @@ using VRage.ObjectBuilders;
 using Sandbox.ModAPI;
 using VRage.Game.ModAPI.Ingame.Utilities;
 using DroneBlockSystem.ControlBlock.Settings;
-using DroneBlockSystem.TargetingBlock.CoreSystems.Api;
+using DroneBlockSystem.CoreSystems.Api;
 using Sandbox.Common;
 using Sandbox.Game;
 using SpaceEngineers.Game;
@@ -37,7 +37,7 @@ using VRage.Collections;
 using VRage.Game.GUI.TextPanel;
 using VRage.Game.ObjectBuilders.Definitions;
 
-namespace DroneBlockSystem.TargetingBlock.TargetingBlocks
+namespace DroneBlockSystem.Targeting
 {
     class ObjectiveTracker
     {

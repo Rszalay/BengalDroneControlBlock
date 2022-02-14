@@ -108,6 +108,34 @@ namespace DroneBlockSystem.NetworkProtobuf
             MyAPIGateway.Multiplayer.SendMessageTo(ChannelId, bytes, steamId);
         }
 
+        internal void SendToPlayers(PacketBase packet)
+        {
+            if (!MyAPIGateway.Multiplayer.IsServer)
+                return;
+
+            if (tempPlayers == null)
+                tempPlayers = new List<IMyPlayer>(MyAPIGateway.Session.SessionSettings.MaxPlayers);
+            else
+                tempPlayers.Clear();
+
+            MyAPIGateway.Players.GetPlayers(tempPlayers);
+            var bytes = MyAPIGateway.Utilities.SerializeToBinary(packet);
+
+            foreach (var p in tempPlayers)
+            {
+                if (p.IsBot)
+                    continue;
+
+                if (p.SteamUserId == MyAPIGateway.Multiplayer.ServerId)
+                    continue;
+
+                if (p.SteamUserId == packet.SenderId)
+                    continue;
+
+                MyAPIGateway.Multiplayer.SendMessageTo(ChannelId, bytes, p.SteamUserId);
+            }
+        }
+
         /// <summary>
         /// Sends packet (or supplied bytes) to all players except server player and supplied packet's sender.
         /// Only works server side.
